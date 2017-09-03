@@ -1,0 +1,65 @@
+doctype html
+html
+  head
+    meta(charset='UTF-8')
+    title Edit My Info
+    style.
+      .div1title {
+      margin: 50px 0px 0px 20px;
+      text-align:center;
+      font-size:80px;
+      color:#83AF9B;
+      }
+      .input1 {
+      margin: 10px 0px 0px 10px;
+      border:3px solid #D8D8D8 ;/*---테두리정의--*/
+      width:130height:30px; /*--버튼크기--*/
+      text-align:center;
+      }
+      .div2content{
+      text-align:left;
+      margin: 50px 0px 0px 250px;
+      }
+      .button {
+      text-align:center;
+      margin: 20px 0px 0px 0px;
+      }
+      #button1, #button2 {
+      border:3px solid #D8D8D8 ;/*---테두리정의--*/
+      width:130height:30px; /*--버튼크기--*/
+      }
+  body
+    .div1title
+      span 개인정보 수정
+    .div2content
+      form(method='get')
+        | 이름
+        input.input1(type='text', name='name', placeholder='이정민', readonly='')
+        br
+        |                 아이디
+        input.input1(type='text', name='id', placeholder='wjdals620', readonly='')
+        br
+        br
+        |                 비밀번호
+        br
+        |                 기존 비밀번호
+        input.input1(name='pw', type='password')
+        br
+        |                 새 비밀번호
+        input.input1(name='pw', type='password')
+        br
+        |                 비밀번호 확인
+        input.input1(name='pw', type='password')
+        br
+        br
+        |                 생년월일 
+        input.input1(name='pw', type='text', placeholder='1994/06/20')
+        button 달력
+        br
+        |  이메일 
+        input.input1(type='text', name='mail', placeholder='jotoomn@naver.com')
+        br
+       | ??? #{id}
+    .button
+      button#button1 수정
+      button#button2 취소

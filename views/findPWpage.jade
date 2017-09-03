@@ -1,0 +1,95 @@
+doctype html
+html
+  head
+    meta(charset='UTF-8')
+    title Find ID
+    style(type='text/css').
+      <!--
+      .div4title{
+      margin: 50px 0px 0px 20px;
+      text-align:center;
+      font-size:100px;
+      color:#83AF9B;
+      }
+      .div4select{
+      margin: 10px 0px 0px 20px;
+      text-align:center;
+      font-size:15px;
+      color:#C8C8A9;
+      }
+      .div4input{
+      margin: 20px 0px 0px 20px;
+     
+      text-align:center;
+      color:#D8D8D8;
+      }
+      .div4find{
+      margin: 20px 0px 0px 20px;
+      text-align:center;
+      color:#D8D8D8;
+      }
+      .input4btn{
+      margin: 10px 0px 0px 10px;
+      border: 3px sold #D8D8D8;
+      font-size:20px;
+      }
+      .input4inform{
+      margin: 10px 0px 0px 10px;
+      text-align:center;
+      border:3px solid #D8D8D8;    /*---테두리 정의---*/
+      width:130;height:30px;  /*--버튼 크기---*/
+      }
+      a:link {color: #A4A4A4; font-size: 9pt;}
+      a:visited {color : #A4A4A4; font-size: 9pt;}
+      a:hover {color : black; font-size: 9pt;}
+      a:active {color : #A4A4A4; font-size: 9pt;}
+      //-->
+  body
+    .div4title
+      span
+        | FIND
+    .div4select
+      span
+        input.input4btn(type='button', style='WIDTH:180pt;', value='ID', onclick="move2id()")
+        input.input4btn(type='button', style='WIDTH:180pt; background-color:#83AF9B', value='PW', onclick="move2pw()")
+    .div4input
+      form(method='get')
+        input.input4inform(type='text', style='WIDTH:230pt', id='name', name='name', placeholder='NAME')
+        br
+        input.input4inform(type='text', style='WIDTH:230pt', id='birth', name='birth', placeholder='BIRTH')
+        br
+        input.input4inform(type='text', style='WIDTH:230pt', id='id', name='id', placeholder='ID')
+        br
+    .div4find
+      button(type='button' name='idcheck' onclick='checkPW()')  FIND 
+      #data4idcheck(style='solid;display:none;') #{JSON.stringify(data)}
+script.
+    function checkPW(){
+        var data4idcheck=document.getElementById("data4idcheck").innerHTML;
+        var name=document.getElementById("name").value;
+        var birth=document.getElementById("birth").value;
+        var id=document.getElementById("id").value;
+        var strArray=data4idcheck.split("{");
+        var i=0,namevalue,birthvalue,checkid=0,idvalue,pw2find,pwvalue;
+        for(i=0;i<strArray.length;i++){
+            namevalue=strArray[i].indexOf('"name":"'+name+'"');
+            birthvalue=strArray[i].indexOf('"birth":"'+birth+'"');
+            idvalue=strArray[i].indexOf('"id":"'+id+'"');
+            if(namevalue!=-1 && birthvalue!=-1 && idvalue!=-1)
+            	break;
+            }
+        pw2find = strArray[i].split('"pw":"');
+        pwvalue= pw2find[1].split('","');
+        if(namevalue != -1 && birthvalue!=-1 && idvalue!=-1)
+            alert("your pw is "+ pwvalue[0]+" !!!");
+        else
+            alert("no data match!!!"); 
+        }
+    function move2pw(){
+        window.location.href = '/find_pw';
+        return false;
+    }
+    function move2id(){
+        window.location.href = '/find_id';
+        return false;
+    }

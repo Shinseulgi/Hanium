@@ -1,0 +1,60 @@
+doctype html
+html
+  head
+    meta(charset='UTF-8')
+    title File Upload
+    style(type='text/css').
+      .divshowid{
+      text-align:right;
+      color:#83AF9B;
+      }
+      .div1title{
+      margin: 50px 0px 0px 20px;
+      text-align:center;
+      font-size:70px;
+      color:#83AF9B;
+      }
+      .div2title{
+      margin: 50px 0px 20px 20px;
+      text-align:center;
+      }
+      #btn1, #btn2{
+      border:3px solid #D8D8D8;
+      }
+      #folder{
+      margin: 0px 0px 20px 0px;
+      }
+      .div4href{
+      text-align:center;
+      a:link{color:#A4A4A4 font-size:9pt}
+      a:visited{color:#A4A4A4 font-size:9pt}
+      a:hover{color:black font-size:9pt}
+      a:active{color:#A4A4A4 font-size:9pt}
+      }
+  body
+     .divshowid
+      div 안녕하세요! #{id}님! 
+      a(href='#', onclick="move2editinfo()") 마이페이지
+    .div1title
+      span
+        | 분석할 로그를 업로드 해주세요!
+    .div2title
+    form(method='post', enctype='multipart/form-data', action='/file-upload')
+      input(type='file', name='thumbnail')
+      .div3button
+        input#btn1(type='submit',onclick="move2analysis()") 
+    .div4href
+      a(href='#',onclick="move2prev()") 이전 분석 결과 확인하러 가기
+script.
+    function move2analysis(){
+        window.location.href = '/analysis';
+        return false;
+    }
+    function move2prev(){
+        window.location.href = '/analysis';
+        return false;
+    }
+    function move2editinfo() {
+        window.location.href = '/editinfo';
+        return false;
+    } 

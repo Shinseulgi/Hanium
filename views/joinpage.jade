@@ -1,0 +1,73 @@
+doctype html
+html
+  head
+    meta(charset='UTF-8')
+    title Join
+    style(type='text/css').
+      <!--
+      .div4welcome{
+      margin: 50px 0px 0px 20px;
+      text-align:center;
+      font-size:100px;
+      color:#83AF9B;
+      }
+      .div4describe{
+      margin: 10px 0px 0px 20px;
+      text-align:center;
+      font-size:15px;
+      color:#C8C8A9;
+      }
+      .div4input{
+      text-align:center;
+      }
+      .input4login{
+      margin: 10px 0px 0px 10px;
+      border:3px solid #D8D8D8;    /*---테두리 정의---*/
+      width:130;height:30px;  /*--버튼 크기---*/
+      }
+      .div4login{
+      text-align:center;
+      color: #F9CDAD;
+      }
+      .div4ahref{
+      margin: 10px 0px 0px 10px;
+      text-align:center;
+      color:#D8D8D8;
+      }
+      a:link {color: #A4A4A4; font-size: 9pt}
+      a:visited {color : #A4A4A4; font-size: 9pt}
+      a:hover {color : black; font-size: 9pt}
+      a:active {color : #A4A4A4; font-size: 9pt}
+      //-->
+  body
+    .div4welcome
+      span
+        | JOIN
+    .div4input
+      form#formAddUser(name="adduser",method='post',action="/join")
+        input.input4login(type='text', name='name', placeholder='NAME')
+        br
+        input.input4login(type='text', name='id', id='id', placeholder='ID')
+        br
+        button(type='button' name='idcheck' onclick='checkId()')   ID CHECK  
+        br
+        br
+        input.input4login(type='password', name='pw', placeholder='PW')
+        br
+        input.input4login(type='text', name='email', placeholder='E-MAIL')
+        br
+        input.input4login(type='text', name='birth', placeholder='BIRTH')
+        br
+        input.input4login(type='submit')
+        br
+        #data4idcheck(style='solid;display:none;') #{JSON.stringify(data)}
+script.
+    function checkId(){
+        var data4idcheck=document.getElementById("data4idcheck").innerHTML;
+        var id=document.getElementById("id").value;
+        var iValue = data4idcheck.indexOf('"id":"'+id+'"');
+        if(iValue != -1)
+            alert("id already exist!!!");
+        else
+            alert("you can use " + id + " !!!"); 
+        }
