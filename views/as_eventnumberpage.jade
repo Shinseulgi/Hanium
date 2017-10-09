@@ -2,6 +2,7 @@ doctype html
 html
   title Log analysis
   head
+    meta#aa(name='description',content="#{JSON.stringify(eventArr)}")
     style(type='text/css').
       <!--
       .divshowid{
@@ -36,34 +37,28 @@ html
     script(src='https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.5/d3.min.js')
     script(src='https://cdnjs.cloudflare.com/ajax/libs/c3/0.4.10/c3.min.js')
     script(type='text/javascript').
+      var eventArray=new Array();
       onReady('#chart', function() {
+      var first=['x', '00:00', '01:00', '02:00', '03:00', '04:00', '05:00', '06:00', '07:00', '08:00', '09:00',
+      '10:00', '11:00', '12:00', '13:00', '14:00', '15:00','16:00', '17:00', '18:00', '19:00', '20:00',
+      '21:00', '22:00', '23:00'];
+      var data=document.getElementById("aa");
+      var data4event=data.content;
+      var rmstr=data4event.replace(/\[|\]/gi,"");
+      var tokenArray=rmstr.split(",");
+      eventArray.push(first);
+      for(var i=0;i<(tokenArray.length/25);i++){
+           var arr_sub = new Array();
+           for(var j=0;j<25;j++){
+             arr_sub.push(tokenArray[(i*25)+j]);
+           }
+           eventArray.push(arr_sub);
+      }
       var chart = c3.generate({
       data: {
       x: 'x',
       xFormat: '%H:%M',
-      columns: [
-      ['x', '00:00', '01:00', '02:00', '03:00', '04:00', '05:00', '06:00', '07:00', '08:00', '09:00',
-      '10:00', '11:00', '12:00', '13:00', '14:00', '15:00','16:00', '17:00', '18:00', '19:00', '20:00',
-      '21:00', '22:00', '23:00'],
-      ['#{data[0]._id.date}', #{data[0].count}, #{data[1].count}, #{data[2].count}, #{data[3].count},
-      #{data[4].count}, #{data[5].count}, #{data[6].count}, #{data[7].count},#{data[8].count}, 
-      #{data[9].count}, #{data[10].count}, #{data[11].count}, #{data[12].count}, #{data[13].count},
-      #{data[14].count}, #{data[15].count},#{data[16].count}, #{data[17].count}, #{data[18].count}, 
-      #{data[19].count}, #{data[20].count}, #{data[21].count}, #{data[22].count}, #{data[23].count}
-      ],
-      ['#{data[24]._id.date}', #{data[24].count}, #{data[25].count}, #{data[26].count}, #{data[27].count},
-      #{data[28].count}, #{data[29].count}, #{data[30].count}, #{data[31].count},#{data[32].count}, 
-      #{data[33].count}, #{data[34].count}, #{data[35].count}, #{data[36].count}, #{data[37].count},
-      #{data[38].count}, #{data[39].count}, #{data[40].count}, #{data[41].count}, #{data[42].count}, 
-      #{data[43].count}, #{data[44].count}, #{data[45].count}, #{data[46].count}, #{data[47].count}
-      ],
-      ['#{data[48]._id.date}', #{data[48].count}, #{data[49].count}, #{data[50].count}, #{data[51].count},
-      #{data[52].count}, #{data[53].count}, #{data[54].count}, #{data[55].count},#{data[56].count}, 
-      #{data[57].count}, #{data[58].count}, #{data[59].count}, #{data[60].count}, #{data[61].count},
-      #{data[62].count}, #{data[63].count},#{data[64].count}, #{data[65].count}, #{data[66].count}, 
-      #{data[67].count}, #{data[68].count}, #{data[69].count}, #{data[70].count}, #{data[71].count}
-      ]
-      ]
+      columns: eventArray
       },
       axis: {
       x: {
@@ -85,17 +80,8 @@ html
       }
       }, 500);
       }
-      
-      setTimeout(function () {
-      chart.load({
-      columns: [
-      ['data3', 400, 500, 450, 700, 600, 500]
-      ]
-      });
-      }, 1000);
-      
   body
-    | Welcome -----   
+    | Welcome -----
     .divshowid
       div 안녕하세요! #{id}님!
     .div4ahref
@@ -103,7 +89,7 @@ html
       a(href='#') Logout
     .div4analysisbtn
       form(method='get')
-        button(type='submit',formaction='/analysis') Log Analysis
+        button(type='submit',formaction='/analysis',id='btn') Log Analysis
         button(type='submit',formaction='/hackanalysis') Hacking  Analysis
     .div4welcome
       span
@@ -121,9 +107,12 @@ html
         br
     #chart
     .div4ahref
-      a(href='#') Save as ".jpg" | &nbsp;&nbsp;
-      a(href='#') Save as ".exec"
+      a(href='#',onclick="save_csv()") Save as ".csv"
 script.
+    function save_csv() {
+      exportToCsv('eventnumber.csv', eventArray);
+      return false;
+    }
     function show_ip() {
         window.location.href = '/analysis_ip';
         return false;
@@ -139,4 +128,43 @@ script.
     function show_status() {
         window.location.href = '/analysis_status';
         return false;
+    }
+    function exportToCsv(filename, rows) {
+        var processRow = function (row) {
+            var finalVal = '';
+            for (var j = 0; j < row.length; j++) {
+                var innerValue = row[j] === null ? '' : row[j].toString();
+                if (row[j] instanceof Date) {
+                    innerValue = row[j].toLocaleString();
+                };
+                var result = innerValue.replace(/"/g, '""');
+                if (result.search(/("|,|\n)/g) >= 0)
+                    result = '"' + result + '"';
+                if (j > 0)
+                    finalVal += ',';
+                finalVal += result;
+            }
+            return finalVal + '\n';
+        };
+
+        var csvFile = '';
+        for (var i = 0; i < rows.length; i++) {
+            csvFile += processRow(rows[i]);
+        }
+        var blob = new Blob([csvFile], { type: 'text/csv;charset=utf-8;' });
+        if (navigator.msSaveBlob) { // IE 10+
+            navigator.msSaveBlob(blob, filename);
+        } else {
+            var link = document.createElement("a");
+            if (link.download !== undefined) { // feature detection
+                // Browsers that support HTML5 download attribute
+                var url = URL.createObjectURL(blob);
+                link.setAttribute("href", url);
+                link.setAttribute("download", filename);
+                link.style.visibility = 'hidden';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                }
+         }
     }
