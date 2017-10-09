@@ -52,7 +52,7 @@ app.post('/', function(req, res) {
     
     var userID = req.body.id;
     var userPW = req.body.pw;
-    LOGINID=userID;
+    LoginID=userID;
     //console.log(userID);
     
     authenticateUser(userID, userPW, function(err, user) {
@@ -69,7 +69,7 @@ app.post('/', function(req, res) {
             }
     });
 });
-var LOGINID;
+var LoginID;
 var GETTODAY;
 //Upload Page/////////////////////////////////////////////////////////////////////////////	
 app.get('/upload', function(req, res) {
@@ -103,7 +103,7 @@ app.post('/file-upload', function(req, res) {
 			        var coll = db.collection('Rawlogtest');
 			        var batch = coll.initializeOrderedBulkOp();
 			        for(i in array){
-			          var newKey = {id: LOGINID, inputdate:GETTODAY, log:array[i]};
+			          var newKey = {id: LoginID, inputdate:GETTODAY, log:array[i]};
 			          console.log(newKey);
 			          batch.insert(newKey);
 			        }
@@ -121,7 +121,7 @@ app.get('/uploadsplitlog', function(req, res) {
         //input split log 
         var coll2split=db.collection('splitlogtest');
         var batch2split = coll2split.initializeOrderedBulkOp();
-        db.collection('Rawlogtest').find({id: LOGINID, inputdate:GETTODAY}).toArray(function(err, data) {
+        db.collection('Rawlogtest').find({id: LoginID, inputdate:GETTODAY}).toArray(function(err, data) {
         	for(var i=0;i<data.length;i++){
         	   var log2split=data[i].log;
         	   var strToken = log2split.split(" ");
@@ -169,7 +169,7 @@ app.get('/uploadsplitlog', function(req, res) {
                if(hackCnt==0)                                 //no hacking
                     hackStr="none";
                //hacking code add, param !!!!!!!!!!!!!!!!!!!!!!!!
-        	   var newKey2split = {id: LOGINID, inputdate:GETTODAY, date: strToken[0], time: strToken[1], srcIp:  strToken[2], dstIp:  strToken[4], proto:  strToken[5], csmethod: strToken[6], page: strToken3[0], param: "-", status: strToken[strToken.length-3], hackType: hackStr};
+        	   var newKey2split = {id: LoginID, inputdate:GETTODAY, date: strToken[0], time: strToken[1], srcIp:  strToken[2], dstIp:  strToken[4], proto:  strToken[5], csmethod: strToken[6], page: strToken3[0], param: "-", status: strToken[strToken.length-3], hackType: hackStr};
 		       console.log(newKey2split);
         	   batch2split.insert(newKey2split);
         	}
@@ -202,7 +202,15 @@ app.get('/uploadranklog', function(req, res) {
 //Analysis Page/////////////////////////////////////////////////////////////////////////////
 app.get('/analysis', function(req, res) {
     res.render('analysispage', {
-        title: 'Analysis'
+        title: 'Analysis',
+        	id: LoginID
+    });
+});
+
+app.get('/pre_analysis', function(req, res) {
+    res.render('pre_analysis', {
+        title: 'pre_analysis',
+        	id: LoginID
     });
 });
 
@@ -212,7 +220,8 @@ app.get('/analysis_eventnumber', function(req, res) {
 	         
 	         db.collection('timeRankCollection').find().toArray(function(err, data) {
 	            res.render('as_eventnumberpage', {
-	               data: data
+	               data: data,
+	               id: LoginID
 	               })
 	            });
 	         });
@@ -223,7 +232,8 @@ app.get('/analysis_ip', function(req, res) {
 		if(err) throw err;
 		    db.collection('srcRankCollection').find().toArray(function(err, data) {
 	            res.render('as_ippage', {
-	               data: data
+	               data: data,
+	               id: LoginID
 	            })
 	        });
 	    });
@@ -234,7 +244,8 @@ app.get('/analysis_page', function(req, res) {
 	         if(err) throw err;
 	         db.collection('pageRankCollection').find().toArray(function(err, data) {
 	            res.render('as_pagepage', {
-	               data: data
+	               data: data,
+	               id: LoginID
 	               })
 	               });
 	   });
@@ -245,7 +256,8 @@ app.get('/analysis_proto', function(req, res) {
 	         if(err) throw err;
 	         db.collection('protoRankCollection').find().toArray(function(err, data) {
 	            res.render('as_protopage', {
-	               data: data
+	               data: data,
+	               id: LoginID
 	               })
 	               });
 	   });
@@ -256,7 +268,8 @@ app.get('/analysis_status', function(req, res) {
 	         if(err) throw err;
 	         db.collection('statusRankCollection').find().toArray(function(err, data) {
 	            res.render('as_statuspage', {
-	               data: data
+	               data: data,
+	               id: LoginID
 	               })
 	               });
 	   });
@@ -288,7 +301,7 @@ app.get('/hackanalysis', function(req, res) {
              });
          db.collection('splitLogCollection').find({'hack_Type':{$regex : ".*inj.*"}},{"_id":false,"hack_Type":false}).toArray(function(err, data) {
             res.render('hackanalysispage', {
-               data : data, solutionText : solution, injcnt:injcnt, basmcnt:basmcnt, xsscnt:xsscnt,  sdecnt:sdecnt
+               data : data, solutionText : solution, injcnt:injcnt, basmcnt:basmcnt, xsscnt:xsscnt,  sdecnt:sdecnt, id: LoginID
                });
          });
    });
@@ -303,7 +316,7 @@ app.get('/hackanalysis_basm', function(req, res) {
              });
          db.collection('splitLogCollection').find({'hack_Type':{$regex : ".*basm.*"}},{"_id":false,"hack_Type":false}).toArray(function(err, data) {
             res.render('hackanalysispage', {
-               data : data, solutionText : solution, injcnt:injcnt, basmcnt:basmcnt, xsscnt:xsscnt,  sdecnt:sdecnt
+               data : data, solutionText : solution, injcnt:injcnt, basmcnt:basmcnt, xsscnt:xsscnt,  sdecnt:sdecnt, id: LoginID
                });
          });
    });
@@ -318,7 +331,7 @@ app.get('/hackanalysis_xss', function(req, res) {
              });
          db.collection('splitLogCollection').find({'hack_Type':{$regex : ".*xss.*"}},{"_id":false,"hack_Type":false}).toArray(function(err, data) {
             res.render('hackanalysispage', {
-               data : data, solutionText : solution, injcnt:injcnt, basmcnt:basmcnt, xsscnt:xsscnt,  sdecnt:sdecnt
+               data : data, solutionText : solution, injcnt:injcnt, basmcnt:basmcnt, xsscnt:xsscnt,  sdecnt:sdecnt, id: LoginID
                });
          });
    });
@@ -333,7 +346,7 @@ app.get('/hackanalysis_sde', function(req, res) {
              });
          db.collection('splitLogCollection').find({'hack_Type':{$regex : ".*sde.*"}},{"_id":false,"hack_Type":false}).toArray(function(err, data) {
             res.render('hackanalysispage', {
-               data : data, solutionText : solution, injcnt:injcnt, basmcnt:basmcnt, xsscnt:xsscnt,  sdecnt:sdecnt
+               data : data, solutionText : solution, injcnt:injcnt, basmcnt:basmcnt, xsscnt:xsscnt,  sdecnt:sdecnt, id: LoginID
                });
          });
    });
