@@ -1,7 +1,3 @@
-/**
- * Module dependencies.
- */
-//basic setting///////////////////////////////////////////////////////////////////////////// 
 var MongoClient = require('mongodb').MongoClient
 , assert = require('assert');
 
@@ -45,21 +41,24 @@ function authenticateUser(userID, password, callback){
         });
     });
 }
- 
+
+
 app.post('/', function(req, res) {
     var db = req.db;
     
     var userID = req.body.id;
     var userPW = req.body.pw;
-    
+    LoginID = userID;
     //console.log(userID);
     
     authenticateUser(userID, userPW, function(err, user) {
         if(user){
             console.log("login");
+            //res.redirect('/upload');
             res.render('uploadpage', {
                 id: userID
             });
+            LoginID = userID;
             
         }
         else {
@@ -68,11 +67,11 @@ app.post('/', function(req, res) {
             }
     });
 });
-
+var LoginID;
 //Upload Page/////////////////////////////////////////////////////////////////////////////	
 app.get('/upload', function(req, res) {
     res.render('uploadpage', {
-        title: 'File Upload'
+        title: 'Upload'
     });
 });
 
@@ -95,7 +94,15 @@ app.post('/file-upload', function(req, res) {
 //Analysis Page/////////////////////////////////////////////////////////////////////////////
 app.get('/analysis', function(req, res) {
     res.render('analysispage', {
-        title: 'Analysis'
+        title: 'Analysis',
+        	id: LoginID
+    });
+});
+
+app.get('/pre_analysis', function(req, res) {
+    res.render('pre_analysis', {
+        title: 'pre_analysis',
+        	id: LoginID
     });
 });
 
@@ -105,7 +112,8 @@ app.get('/analysis_eventnumber', function(req, res) {
 	         
 	         db.collection('timeRankCollection').find().toArray(function(err, data) {
 	            res.render('as_eventnumberpage', {
-	               data: data
+	               data: data,
+	               id: LoginID
 	               })
 	            });
 	         });
@@ -116,7 +124,8 @@ app.get('/analysis_ip', function(req, res) {
 		if(err) throw err;
 		    db.collection('srcRankCollection').find().toArray(function(err, data) {
 	            res.render('as_ippage', {
-	               data: data
+	               data: data,
+	               id: LoginID
 	            })
 	        });
 	    });
@@ -127,7 +136,8 @@ app.get('/analysis_page', function(req, res) {
 	         if(err) throw err;
 	         db.collection('pageRankCollection').find().toArray(function(err, data) {
 	            res.render('as_pagepage', {
-	               data: data
+	               data: data,
+	               id: LoginID
 	               })
 	               });
 	   });
@@ -138,7 +148,8 @@ app.get('/analysis_proto', function(req, res) {
 	         if(err) throw err;
 	         db.collection('protoRankCollection').find().toArray(function(err, data) {
 	            res.render('as_protopage', {
-	               data: data
+	               data: data,
+	               id: LoginID
 	               })
 	               });
 	   });
@@ -149,7 +160,8 @@ app.get('/analysis_status', function(req, res) {
 	         if(err) throw err;
 	         db.collection('statusRankCollection').find().toArray(function(err, data) {
 	            res.render('as_statuspage', {
-	               data: data
+	               data: data,
+	               id: LoginID
 	               })
 	               });
 	   });
@@ -181,7 +193,7 @@ app.get('/hackanalysis', function(req, res) {
              });
          db.collection('splitLogCollection').find({'hack_Type':{$regex : ".*inj.*"}},{"_id":false,"hack_Type":false}).toArray(function(err, data) {
             res.render('hackanalysispage', {
-               data : data, solutionText : solution, injcnt:injcnt, basmcnt:basmcnt, xsscnt:xsscnt,  sdecnt:sdecnt
+               data : data, solutionText : solution, injcnt:injcnt, basmcnt:basmcnt, xsscnt:xsscnt,  sdecnt:sdecnt, id: LoginID
                });
          });
    });
@@ -196,7 +208,7 @@ app.get('/hackanalysis_basm', function(req, res) {
              });
          db.collection('splitLogCollection').find({'hack_Type':{$regex : ".*basm.*"}},{"_id":false,"hack_Type":false}).toArray(function(err, data) {
             res.render('hackanalysispage', {
-               data : data, solutionText : solution, injcnt:injcnt, basmcnt:basmcnt, xsscnt:xsscnt,  sdecnt:sdecnt
+               data : data, solutionText : solution, injcnt:injcnt, basmcnt:basmcnt, xsscnt:xsscnt,  sdecnt:sdecnt, id: LoginID
                });
          });
    });
@@ -211,7 +223,7 @@ app.get('/hackanalysis_xss', function(req, res) {
              });
          db.collection('splitLogCollection').find({'hack_Type':{$regex : ".*xss.*"}},{"_id":false,"hack_Type":false}).toArray(function(err, data) {
             res.render('hackanalysispage', {
-               data : data, solutionText : solution, injcnt:injcnt, basmcnt:basmcnt, xsscnt:xsscnt,  sdecnt:sdecnt
+               data : data, solutionText : solution, injcnt:injcnt, basmcnt:basmcnt, xsscnt:xsscnt,  sdecnt:sdecnt, id: LoginID
                });
          });
    });
@@ -226,7 +238,7 @@ app.get('/hackanalysis_sde', function(req, res) {
              });
          db.collection('splitLogCollection').find({'hack_Type':{$regex : ".*sde.*"}},{"_id":false,"hack_Type":false}).toArray(function(err, data) {
             res.render('hackanalysispage', {
-               data : data, solutionText : solution, injcnt:injcnt, basmcnt:basmcnt, xsscnt:xsscnt,  sdecnt:sdecnt
+               data : data, solutionText : solution, injcnt:injcnt, basmcnt:basmcnt, xsscnt:xsscnt,  sdecnt:sdecnt, id: LoginID
                });
          });
    });
