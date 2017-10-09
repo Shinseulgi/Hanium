@@ -4,15 +4,19 @@ html
   head
     style(type='text/css').
       <!--
-      .div4analysisbtn{
+      .divshowid{
       text-align:center;
-      font-size:30px;
       color:#83AF9B;
       }
       .div4welcome{
       margin: 50px 0px 0px 20px;
       text-align:center;
       font-size:100px;
+      color:#83AF9B;
+      }
+      .div4analysisbtn{
+      text-align:center;
+      font-size:30px;
       color:#83AF9B;
       }
       .div4input{
@@ -62,6 +66,8 @@ html
       
   body
     | Welcome -----   
+    .divshowid
+      div 안녕하세요! #{id}님!
     .div4ahref
       a(href='#') Setting | &nbsp;&nbsp;
       a(href='#') Logout
@@ -109,3 +115,4 @@ script.
     var myCsv = "Col1,Col2,Col3\nval1,val2,val3";
     window.open('data:text/csv;charset=utf-8,' + escape(myCsv));
     }
+      
