@@ -106,18 +106,25 @@ app.get('/pre_analysis', function(req, res) {
     });
 });
 
+var eventArr=[];
 app.get('/analysis_eventnumber', function(req, res) {
-	   MongoClient.connect(url, function(err,db){
-	         if(err) throw err;
-	         
-	         db.collection('timeRankCollection').find().toArray(function(err, data) {
-	            res.render('as_eventnumberpage', {
-	               data: data,
-	               id: LoginID
-	               })
-	            });
-	         });
-	});
+   MongoClient.connect(url, function(err,db){
+         if(err) throw err;
+         db.collection('timeRankCollection').find().toArray(function(err, data) {
+            for(var i=0;i<(data.length/24);i++){
+                  eventArr[i]=new Array();
+                  eventArr[i][0]=data[(i*24)]._id.date;
+                  for(var j=0;j<24;j++){
+                     eventArr[i][j+1]=data[(i*24)+j].count;
+                  }
+               }
+            
+          res.render('as_eventnumberpage', {
+               data : data, eventArr : eventArr, id: LoginID
+               })
+            });
+         });
+});
 
 app.get('/analysis_ip', function(req, res) {
 	MongoClient.connect(url, function(err,db){
