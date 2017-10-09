@@ -1,3 +1,7 @@
+/**
+ * Module dependencies.
+ */
+//basic setting///////////////////////////////////////////////////////////////////////////// 
 var MongoClient = require('mongodb').MongoClient
 , assert = require('assert');
 
@@ -9,7 +13,8 @@ var express = require('express')
   , user = require('./routes/user')
   , http = require('http')
   , path = require('path')
-  , fs = require('fs');
+  , fs = require('fs')
+  , async = require('async');
 
 var app = express();
 
@@ -41,24 +46,21 @@ function authenticateUser(userID, password, callback){
         });
     });
 }
-
-
+ 
 app.post('/', function(req, res) {
     var db = req.db;
     
     var userID = req.body.id;
     var userPW = req.body.pw;
-    LoginID = userID;
+    LoginID=userID;
     //console.log(userID);
     
     authenticateUser(userID, userPW, function(err, user) {
         if(user){
             console.log("login");
-            //res.redirect('/upload');
             res.render('uploadpage', {
                 id: userID
             });
-            LoginID = userID;
             
         }
         else {
@@ -68,27 +70,133 @@ app.post('/', function(req, res) {
     });
 });
 var LoginID;
+var GETTODAY;
 //Upload Page/////////////////////////////////////////////////////////////////////////////	
 app.get('/upload', function(req, res) {
     res.render('uploadpage', {
-        title: 'Upload'
+        title: 'File Upload'        	
     });
 });
 
-app.post('/file-upload', function(req, res) { 
-	// get the temporary location of the file 
+app.post('/file-upload', function(req, res) {
+	var date=new Date();
+	var year=date.getFullYear();
+	var month=date.getMonth()+1;
+	var day=date.getDate();
+	if((day+"").length<2)
+		day="0"+day;
+	GETTODAY=year+"-"+month+"-"+day;
+	
 	var tmp_path = req.files.thumbnail.path; 
-	// set where the file should actually exists - in this case it is in the "images" directory 
 	var target_path = './' + req.files.thumbnail.name; 
-	// move the file from the temporary location to the intended location 
+	var name4file2read = './' + req.files.thumbnail.name; 
 	fs.rename(tmp_path, target_path, function(err) { 
 		if (err) throw err; 
-	// delete the temporary file, so that the explicitly set temporary upload dir does not get filled with unwanted files 
 		fs.unlink(tmp_path, function() { 
 			if (err) throw err; 
-			res.redirect('/analysis');
+			fs.readFile(name4file2read, function(err, data) {
+			    if(err) throw err;
+			    var array = data.toString().split("\n");
+			    MongoClient.connect(url, function(err, db) {
+			        if(err) throw err;
+			        //input raw log
+			        var coll = db.collection('Rawlogtest');
+			        var batch = coll.initializeOrderedBulkOp();
+			        for(i in array){
+			          var newKey = {id: LoginID, inputdate:GETTODAY, log:array[i]};
+			          console.log(newKey);
+			          batch.insert(newKey);
+			        }
+			        batch.execute(function(err, result) { db.close();});
+			    });
+			});
+			res.redirect('/uploadsplitlog');
 		}); 
 	}); 
+});
+
+app.get('/uploadsplitlog', function(req, res) {
+	MongoClient.connect(url, function(err, db) {
+        if(err) throw err;
+        //input split log 
+        var coll2split=db.collection('splitlogtest');
+        var batch2split = coll2split.initializeOrderedBulkOp();
+        db.collection('Rawlogtest').find({id: LoginID, inputdate:GETTODAY}).toArray(function(err, data) {
+        	for(var i=0;i<data.length;i++){
+        	   var log2split=data[i].log;
+        	   var strToken = log2split.split(" ");
+               var strToken2= log2split.split(strToken[6]);
+               var strToken3= strToken2[1].split(strToken[strToken.length-3]);
+               var pageQuery = strToken3[0];
+               var hackfilter = pageQuery.includes("'","\"","--","/*","*/","(",")","<",">","=","union","insert","select","drop","update","and","or","If","Join");
+               var htmlfilter =  pageQuery.includes("<script","<img","<div","<embed","<iframe");
+               var hackStr="";
+               var hackCnt=0;
+               if(hackfilter==1){
+            	   if(hackCnt>0){
+            		   hackStr += "+";
+            	   }
+            	   hackStr += "inj";
+            	   hackCnt++;
+               }
+               if(pageQuery.includes("Id","id")) {
+                    if(hackCnt > 0)
+                    	hackStr += "+";
+                    if(pageQuery.includes("sessionId")) {            //2. Broken Authentication and Session Management
+                     	hackStr += "basm";
+                     	hackCnt++;
+                    }
+                    else {                                          //4. Sensitive Data Exposure
+                     	hackStr += "sde";
+                     	hackCnt++;
+                    }
+               }
+               if(pageQuery.includes("secure")) {
+                    if(pageQuery.includes("=")) {
+                    	if(hackCnt > 0)
+                            hackStr += "+";
+                        hackStr += "sde";
+                        hackCnt++;
+                   }
+               } 
+               if(htmlfilter==1){
+            	   if(hackCnt>0){
+            		   hackStr += "+";
+            	   }
+            	   hackStr += "xss";
+            	   hackCnt++;
+               }
+               if(hackCnt==0)                                 //no hacking
+                    hackStr="none";
+               //hacking code add, param !!!!!!!!!!!!!!!!!!!!!!!!
+        	   var newKey2split = {id: LoginID, inputdate:GETTODAY, date: strToken[0], time: strToken[1], srcIp:  strToken[2], dstIp:  strToken[4], proto:  strToken[5], csmethod: strToken[6], page: strToken3[0], param: "-", status: strToken[strToken.length-3], hackType: hackStr};
+		       console.log(newKey2split);
+        	   batch2split.insert(newKey2split);
+        	}
+           batch2split.execute(function(err, result){ db.close();});
+        });
+    });
+	res.redirect('/uploadranklog');
+});
+
+app.get('/uploadranklog', function(req, res) {
+	MongoClient.connect(url, function(err, db) {
+        if(err) throw err;
+        var coll2rank = db.collection('ranktest');
+        var batch2rank = coll2rank.initializeOrderedBulkOp();
+        db.collection('splitlogtest').aggregate(
+        	 {$group: {_id: {$toLower:'$hackType'}, count: { $sum: 1 }}}
+        , function(err, result) {
+            if(err) {
+                db.close();
+                throw err;
+            }
+            console.log(result);
+            //batch2rank.insert(result);
+        });
+         //batch2rank.execute(function(err, result) { db.close();});
+    });
+	res.redirect('/analysis');
 });
 
 //Analysis Page/////////////////////////////////////////////////////////////////////////////
