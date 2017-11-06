@@ -3,12 +3,125 @@ html
   title Log hackanalysis
   |   
   head
+    style.
+      html { font-size: 62.5%; }
+      body { font-size: 1em;}
+      @media (max-width: 300px) {
+      html { font-size: 70%; }
+      }
+      @media (min-width: 500px) {
+      html { font-size: 80%; }
+      }
+      @media (min-width: 700px) {
+      html { font-size: 120%; }
+      }
+      @media (min-width: 1200px) {
+      html { font-size: 200%; }
+      }
+      #container {
+      margin: 5px;
+      height: 100%;
+      }
+      html, body {
+      height: 100%;
+      }
+      #header {
+      height: 10%;
+      }
+      #medium {
+      width:50%
+      height: 10%;
+      float:left;
+      }
+      #userinfo {
+      height: 100%;
+      width:100%
+      color:#D8D8D8;
+      font-size: 50%;
+      }
+      #down{
+      float: left;
+      width: 100%;
+      height: 80%;
+      }
+      #content {
+      float: right;
+      width: 85%;
+      height: 80%;
+      text-align: center;
+      font-size: 50%;
+      }
+      #logo{
+      width: 15%;
+      height: 100%;
+      float:left;
+      }
+      #up_menu{
+      width: 85%;
+      height: 100%;
+      float:right;
+      }
+      img {
+      max-width: 100%;
+      max-height: 100%;
+      }
+      ul {
+      height: 100%;
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      background-color: #fed7d6;
+      list-style-type: none;
+      }
+      li {
+      height: 100%;
+      float: left;
+      }
+      li a {
+      height: 100%;
+      display: block;
+      font-size: 62.5%;
+      color: black;
+      font-family: Verdana, sans-serif;
+      font-size: .9em;
+      text-align: center;
+      padding: 12px 16px;
+      text-decoration: none;
+      }
+      li a:hover:not(.active) {
+      color: black;
+      height: 100%;
+      background-color: #FC9D9A;
+      }
+      .active {
+      color: black;
+      height: 100%;
+      background-color: #FC9D9A;
+      }
+      #sideinfo {
+      float: left;
+      width: 15%;
+      height: 80%;
+      margin: 0px;
+      background-color: #fed7d6;
+      font-size: .9em;
+      }
+      #sideinfo a {
+      display: block; /* this makes the link look like a block element - we could give it margins, etc. */
+      text-decoration: none;
+      color: black;
+      background-color: #fed7d6;
+      margin: 0px;
+      width: 100%;
+      font-family: Verdana, sans-serif;
+      text-align: center;
+      border-bottom: 1px solid #555;
+      }
+      #sideinfo a:hover {
+      background-color: #FC9D9A;
+      }
     style(type='text/css').
       <!--
-      .divshowid{
-      text-align:center;
-      color:#83AF9B;
-      }
       .div4analysisbtn{
       text-align:center;
       font-size:30px;
@@ -62,78 +175,91 @@ html
       text-align:center;
       color:#D8D8D8;
       }
-      a:link {color: #A4A4A4; font-size: 9pt}
-      a:visited {color : #A4A4A4; font-size: 9pt}
-      a:hover {color : black; font-size: 9pt}
-      a:active {color : #A4A4A4; font-size: 9pt}
       //-->
     |     
     link(href='https://cdnjs.cloudflare.com/ajax/libs/c3/0.4.10/c3.min.css', rel='stylesheet')
     script(type='text/javascript').
   |   
-  body
-    | Welcome -----   
-    .divshowid
-      div 안녕하세요! #{id}님!
-    .div4ahref
-      a(href='#') Setting
-      |       &nbsp;&nbsp;
-      |       
-      a(href='#') Logout
-    .div4analysisbtn
-      form(method='get')
-        button(type='submit',formaction='/analysis') Log Analysis
-        button(type='submit',formaction='/hackanalysis') Hacking  Analysis
-    .div4welcome
-        | hacking analysis!
-    .div4input
-      form(method='get')
-        br
-        button(type='submit',id='injbtn',formaction='/hackanalysis')   Injection(#{injcnt})  
-        button(type='submit',id='basmbtn',formaction='/hackanalysis_basm')  Broken Authentication and Session Management(#{basmcnt}) 
-        button(type='submit',id='xssbtn',formaction='/hackanalysis_xss')  Cross Site Scripting(#{xsscnt}) 
-        button(type='submit',id='sdebtn',formaction='/hackanalysis_sde')  Sensitive Data Exposure(#{sdecnt}) 
-        br
-    |    
-    .div4label
-      br
-      | Log Information
-    table.outtable
-      tr
-        td
-          table.center
-            tr(style='color:white;background-color:grey')
-              th(width="8%") date
-              th(width="6%") time
-              th(width="12%") srcIP
-              th(width="12%") dstIP
-              th(width="4%") proto
-              th(width="8%") csMethod
-              th(width="30%") page
-              th param
-              th(width="6%") status
-      tr
-        td
-          .outcenter
-            table.center(border='1')
-              tr
-                td(width="8%")
-                td(width="6%")
-                td(width="12%")
-                td(width="12%")
-                td(width="4%")
-                td(width="8%")
-                td(width="30%")
-                td(word-break="break-all")
-                td(width="6%")
-                each logs in data
-                  tr
-                   each log in logs
-                     td #{log}
-
-    .div4label
-      br
-      | Solution
-      br
-      textarea.divcenter#solutionText(rows='4', cols='150') #{solutionText}
+  body(onload="func()")
+    #container
+      #header
+        #logo
+          img(src='https://raw.githubusercontent.com/Shinseulgi/Hanium/master/webla.jpg')               
+        #up_menu
+          ul
+            li
+              a(href='/analysis') Log Analysis     
+            li
+              a.active(href='/hack_analysis') Hacking Analysis       
+            li
+              a(href='/pre_analysis') History 
+      #medium           
+        #userinfo 
+          br
+          | Welcome -----
+          .divshowid
+           div 안녕하세요! #{id}님!
+          br
+          a(href='#') Setting | &nbsp;&nbsp;
+          a(href='#') Logout
+          br
+          br
+          br
+      #down
+        #sideinfo
+          span
+            a(id='hackanalysis',href='/hackanalysis') Injection(#{injcnt})  
+          span
+            a(id='hackanalysis_basm',href='/hackanalysis_basm') Broken Authentication and Session Management(#{basmcnt}) 
+          span
+            a(id='hackanalysis_xss',href='/hackanalysis_xss') Cross Site Scripting(#{xsscnt}) 
+          span
+            a(id='hackanalysis_sde',href='/hackanalysis_sde') Sensitive Data Exposure(#{sdecnt})  
+        #content
+          .div4label
+            | Log Information
+          table.outtable
+            tr
+              td
+                table.center
+                  tr(style='color:white;background-color:grey')
+                    th(width="8%") date
+                    th(width="6%") time
+                    th(width="12%") srcIP
+                    th(width="12%") dstIP
+                    th(width="4%") proto
+                    th(width="8%") csMethod
+                    th(width="30%") page
+                    th param
+                    th(width="6%") status
+            tr
+              td
+                .outcenter
+                  table.center(border='1')
+                    tr
+                      td(width="8%")
+                      td(width="6%")
+                      td(width="12%")
+                      td(width="12%")
+                      td(width="4%")
+                      td(width="8%")
+                      td(width="30%")
+                      td(word-break="break-all")
+                      td(width="6%")
+                      each logs in data
+                        tr
+                          each log in logs
+                            td #{log}
+          .div4label
+            br
+            | Solution
+            br
+            textarea.divcenter#solutionText(rows='4', cols='150') #{solutionText}
 script.
+  function func(){
+    var docURL=document.URL;
+    var urlTokens=docURL.split("/");
+    var hackType=urlTokens[3];
+    var data=document.getElementById(hackType);
+    data.style.backgroundColor= '#FC9D9A';
+  }
