@@ -97,10 +97,23 @@ app.post('/file-upload', function(req, res) {
 			fs.readFile(name4file2read, function(err, data) {
 			    if(err) throw err;
 			    var array = data.toString().split("\n");
-			    MongoClient.connect(url, function(err, db) {
+			    MongoClient.connect(url,{
+				    server: {
+				        socketOptions: {
+				            keepAlive: 300000,
+				            connectTimeoutMS: 30000
+				        }
+				    },
+				    replset: {
+				        socketOptions: {
+				            keepAlive: 300000,
+				            connectTimeoutMS: 30000
+				        }
+				    }
+				}, function(err, db) {
 			        if(err) throw err;
 			        //input raw log
-			        var coll = db.collection('Rawlogtest');
+			        var coll = db.collection('originLogCollection');
 			        var batch = coll.initializeOrderedBulkOp();
 			        for(i in array){
 			          var newKey = {id: LoginID, inputdate:GETTODAY, log:array[i]};
@@ -110,95 +123,173 @@ app.post('/file-upload', function(req, res) {
 			        batch.execute(function(err, result) { db.close();});
 			    });
 			});
-			res.redirect('/uploadsplitlog');
 		}); 
 	}); 
+	res.redirect('/uploadsplitlog');
 });
 
 app.get('/uploadsplitlog', function(req, res) {
-	MongoClient.connect(url, function(err, db) {
+	MongoClient.connect(url,{
+	    server: {
+	        socketOptions: {
+	            keepAlive: 300000,
+	            connectTimeoutMS: 30000
+	        }
+	    },
+	    replset: {
+	        socketOptions: {
+	            keepAlive: 300000,
+	            connectTimeoutMS: 30000
+	        }
+	    }
+	}, function(err, db) {
         if(err) throw err;
         //input split log 
-        var coll2split=db.collection('splitlogtest');
+        var coll2split=db.collection('splitLogCollection');
         var batch2split = coll2split.initializeOrderedBulkOp();
-        db.collection('Rawlogtest').find({id: LoginID, inputdate:GETTODAY}).toArray(function(err, data) {
-        	for(var i=0;i<data.length;i++){
-        	   var log2split=data[i].log;
-        	   var strToken = log2split.split(" ");
-               var strToken2= log2split.split(strToken[6]);
-               var strToken3= strToken2[1].split(strToken[strToken.length-3]);
-               var pageQuery = strToken3[0];
-               var hackfilter = pageQuery.includes("'","\"","--","/*","*/","(",")","<",">","=","union","insert","select","drop","update","and","or","If","Join");
-               var htmlfilter =  pageQuery.includes("<script","<img","<div","<embed","<iframe");
-               var hackStr="";
-               var hackCnt=0;
-               if(hackfilter==1){
-            	   if(hackCnt>0){
-            		   hackStr += "+";
-            	   }
-            	   hackStr += "inj";
-            	   hackCnt++;
-               }
-               if(pageQuery.includes("Id","id")) {
-                    if(hackCnt > 0)
-                    	hackStr += "+";
-                    if(pageQuery.includes("sessionId")) {            //2. Broken Authentication and Session Management
-                     	hackStr += "basm";
-                     	hackCnt++;
-                    }
-                    else {                                          //4. Sensitive Data Exposure
-                     	hackStr += "sde";
-                     	hackCnt++;
-                    }
-               }
-               if(pageQuery.includes("secure")) {
-                    if(pageQuery.includes("=")) {
-                    	if(hackCnt > 0)
-                            hackStr += "+";
-                        hackStr += "sde";
-                        hackCnt++;
+        db.collection('originLogCollection').find({"id": LoginID, "inputdate":GETTODAY}).toArray(function(err, data) {
+        	for(var i=0;i<(data.length);i++){
+        	   if(data[i].log){
+        		   var log2split=data[i].log;
+            	   var strToken = log2split.split(" ");
+                   var strToken2= log2split.split(strToken[6]);
+                   var strToken3= strToken2[1].split(strToken[strToken.length-3]);
+                   var pageQuery = strToken3[0];
+                   var hackfilter = pageQuery.includes("'","\"","--","/*","*/","(",")","<",">","=","union","insert","select","drop","update","and","or","If","Join");
+                   var htmlfilter =  pageQuery.includes("<script","<img","<div","<embed","<iframe");
+                   var hackStr="";
+                   var hackCnt=0;
+                   if(hackfilter==1){
+                	   if(hackCnt>0){
+                		   hackStr += "+";
+                	   }
+                	   hackStr += "inj";
+                	   hackCnt++;
                    }
-               } 
-               if(htmlfilter==1){
-            	   if(hackCnt>0){
-            		   hackStr += "+";
-            	   }
-            	   hackStr += "xss";
-            	   hackCnt++;
-               }
-               if(hackCnt==0)                                 //no hacking
-                    hackStr="none";
-               //hacking code add, param !!!!!!!!!!!!!!!!!!!!!!!!
-        	   var newKey2split = {id: LoginID, inputdate:GETTODAY, date: strToken[0], time: strToken[1], srcIp:  strToken[2], dstIp:  strToken[4], proto:  strToken[5], csmethod: strToken[6], page: strToken3[0], param: "-", status: strToken[strToken.length-3], hackType: hackStr};
-		       console.log(newKey2split);
-        	   batch2split.insert(newKey2split);
-        	}
-           batch2split.execute(function(err, result){ db.close();});
+                   if(pageQuery.includes("Id","id")) {
+                        if(hackCnt > 0)
+                        	hackStr += "+";
+                        if(pageQuery.includes("sessionId")) {            //2. Broken Authentication and Session Management
+                         	hackStr += "basm";
+                         	hackCnt++;
+                        }
+                        else {                                          //4. Sensitive Data Exposure
+                         	hackStr += "sde";
+                         	hackCnt++;
+                        }
+                   }
+                   if(pageQuery.includes("secure")) {
+                        if(pageQuery.includes("=")) {
+                        	if(hackCnt > 0)
+                                hackStr += "+";
+                            hackStr += "sde";
+                            hackCnt++;
+                       }
+                   } 
+                   if(htmlfilter==1){
+                	   if(hackCnt>0){
+                		   hackStr += "+";
+                	   }
+                	   hackStr += "xss";
+                	   hackCnt++;
+                   }
+                   if(hackCnt==0)                                 //no hacking
+                        hackStr="none";
+                   //hacking code add, param !!!!!!!!!!!!!!!!!!!!!!!!
+            	   var newKey2split = {id: LoginID, inputdate:GETTODAY, date: strToken[0], time: strToken[1], srcIp:  strToken[2], dstIp:  strToken[4], proto:  strToken[5], csmethod: strToken[6], page: strToken3[0], param: "-", status: strToken[strToken.length-3], hackType: hackStr};
+            	   console.log(newKey2split);
+            	   batch2split.insert(newKey2split);
+            	}
+               batch2split.execute(function(err, result){ db.close();});
+        	}    
         });
     });
 	res.redirect('/uploadranklog');
 });
 
 app.get('/uploadranklog', function(req, res) {
-	MongoClient.connect(url, function(err, db) {
+	MongoClient.connect(url,function(err, db) {
         if(err) throw err;
-        var coll2rank = db.collection('ranktest');
-        var batch2rank = coll2rank.initializeOrderedBulkOp();
-        db.collection('splitlogtest').aggregate(
-        	 {$group: {_id: {$toLower:'$hackType'}, count: { $sum: 1 }}}
+        var coll2pagerank = db.collection('pageRankCollection');
+        db.collection('splitLogCollection').aggregate(
+        		{ $match : {id : LoginID,inputdate:GETTODAY} },
+        	 {$group: {_id: '$page',id: {$first:'$id'}, inputdate: {$first:'$inputdate'}, count: { $sum: 1 } }}
         , function(err, result) {
             if(err) {
                 db.close();
                 throw err;
             }
             console.log(result);
-            //batch2rank.insert(result);
+            coll2pagerank.insert(result);
         });
-         //batch2rank.execute(function(err, result) { db.close();});
+        //batch2rank.execute(function(err, result) { db.close();});
     });
-	res.redirect('/analysis');
+	MongoClient.connect(url,function(err, db) {
+        if(err) throw err;
+        var coll2pagerank = db.collection('protoRankCollection');
+        db.collection('splitLogCollection').aggregate(
+        		{ $match : {id : LoginID,inpudate:GETTODAY} },
+        	 {$group: {_id: '$proto',id: {$first:'$id'}, inputdate: {$first:'$inputdate'}, count: { $sum: 1 } }}
+        , function(err, result) {
+            if(err) {
+                db.close();
+                throw err;
+            }
+            console.log(result);
+            coll2pagerank.insert(result);
+        });
+        //batch2rank.execute(function(err, result) { db.close();});
+    });
+	MongoClient.connect(url,function(err, db) {
+        if(err) throw err;
+        var coll2pagerank = db.collection('srcRankCollection');
+        db.collection('splitLogCollection').aggregate(
+        		{ $match : {id : LoginID,inputdate:GETTODAY} },
+        	 {$group: {_id: '$srcIp',id: {$first:'$id'}, inputdate: {$first:'$inputdate'}, count: { $sum: 1 } }}
+        , function(err, result) {
+            if(err) {
+                db.close();
+                throw err;
+            }
+            console.log(result);
+            coll2pagerank.insert(result);
+        });
+        //batch2rank.execute(function(err, result) { db.close();});
+    });
+	MongoClient.connect(url, function(err, db) {
+        if(err) throw err;
+        var coll2pagerank = db.collection('statusRankCollection');
+        db.collection('splitLogCollection').aggregate(
+        		{ $match : {id : LoginID,inputdate:GETTODAY} },
+        	 {$group: {_id: '$status',id: {$first:'$id'}, inputdate: {$first:'$inputdate'}, count: { $sum: 1 } }}
+        , function(err, result) {
+            if(err) {
+                db.close();
+                throw err;
+            }
+            console.log(result);
+            coll2pagerank.insert(result);
+        });
+        //batch2rank.execute(function(err, result) { db.close();});
+    });
+	MongoClient.connect(url, function(err, db) {
+        if(err) throw err;
+        var coll2pagerank = db.collection('timeRankCollection');
+        db.collection('splitLogCollection').aggregate(
+        		{ $match : {id : LoginID,inputdate:GETTODAY} },
+        	 {$group: {_id: '$date',id: {$first:'$id'}, inputdate: {$first:'$inputdate'}, count: { $sum: 1 } }}
+        , function(err, result) {
+            if(err) {
+                db.close();
+                throw err;
+            }
+            console.log(result);
+            coll2pagerank.insert(result);
+        });
+        //batch2rank.execute(function(err, result) { db.close();});
+    });
+	res.redirect('/analysis');	
 });
-
 //Analysis Page/////////////////////////////////////////////////////////////////////////////
 app.get('/analysis', function(req, res) {
     res.render('analysispage', {
@@ -218,7 +309,7 @@ var eventArr=[];
 app.get('/analysis_eventnumber', function(req, res) {
    MongoClient.connect(url, function(err,db){
          if(err) throw err;
-         db.collection('timeRankCollection').find().toArray(function(err, data) {
+         db.collection('timeRankCollection').find({"id": LoginID, "inputdate":GETTODAY}).toArray(function(err, data) {
             for(var i=0;i<(data.length/24);i++){
                   eventArr[i]=new Array();
                   eventArr[i][0]=data[(i*24)]._id.date;
@@ -237,7 +328,7 @@ app.get('/analysis_eventnumber', function(req, res) {
 app.get('/analysis_ip', function(req, res) {
 	MongoClient.connect(url, function(err,db){
 		if(err) throw err;
-		    db.collection('srcRankCollection').find().toArray(function(err, data) {
+		    db.collection('srcRankCollection').find({"id": LoginID, "inputdate":GETTODAY}).toArray(function(err, data) {
 	            res.render('as_ippage', {
 	               data: data,
 	               id: LoginID
@@ -249,7 +340,7 @@ app.get('/analysis_ip', function(req, res) {
 app.get('/analysis_page', function(req, res) {
 	   MongoClient.connect(url, function(err,db){
 	         if(err) throw err;
-	         db.collection('pageRankCollection').find().toArray(function(err, data) {
+	         db.collection('pageRankCollection').find({"id": LoginID, "inputdate":GETTODAY}).toArray(function(err, data) {
 	            res.render('as_pagepage', {
 	               data: data,
 	               id: LoginID
@@ -261,7 +352,7 @@ app.get('/analysis_page', function(req, res) {
 app.get('/analysis_proto', function(req, res) {
 	   MongoClient.connect(url, function(err,db){
 	         if(err) throw err;
-	         db.collection('protoRankCollection').find().toArray(function(err, data) {
+	         db.collection('protoRankCollection').find({"id": LoginID, "inputdate":GETTODAY}).toArray(function(err, data) {
 	            res.render('as_protopage', {
 	               data: data,
 	               id: LoginID
@@ -273,7 +364,7 @@ app.get('/analysis_proto', function(req, res) {
 app.get('/analysis_status', function(req, res) {
 	   MongoClient.connect(url, function(err,db){
 	         if(err) throw err;
-	         db.collection('statusRankCollection').find().toArray(function(err, data) {
+	         db.collection('statusRankCollection').find({id: LoginID, inputdate:GETTODAY}).toArray(function(err, data) {
 	            res.render('as_statuspage', {
 	               data: data,
 	               id: LoginID
@@ -286,10 +377,10 @@ var injcnt, basmcnt, xsscnt, sdecnt;
 app.get('/hackanalysis', function(req, res) {
    MongoClient.connect(url, function(err,db){
          if(err) throw err;
-         var injLogs = db.collection("splitLogCollection").find({'hack_Type':{$regex : ".*inj.*"}});
-         var basmLogs = db.collection("splitLogCollection").find({'hack_Type':{$regex : ".*basm.*"}});
-         var xssLogs = db.collection("splitLogCollection").find({'hack_Type':{$regex : ".*xss.*"}});
-         var sdeLogs = db.collection("splitLogCollection").find({'hack_Type':{$regex : ".*sde.*"}});
+         var injLogs = db.collection("splitLogCollection").find({"id": LoginID, "inputdate":GETTODAY,'hackType':{$regex : ".*inj.*"}});
+         var basmLogs = db.collection("splitLogCollection").find({"id": LoginID, "inputdate":GETTODAY,'hackType':{$regex : ".*basm.*"}});
+         var xssLogs = db.collection("splitLogCollection").find({"id": LoginID, "inputdate":GETTODAY,'hackType':{$regex : ".*xss.*"}});
+         var sdeLogs = db.collection("splitLogCollection").find({"id": LoginID, "inputdate":GETTODAY,'hackType':{$regex : ".*sde.*"}});
          injLogs.count(function(error, cnt) {
             injcnt=cnt;
          });
@@ -306,7 +397,7 @@ app.get('/hackanalysis', function(req, res) {
          db.collection("hackingCollection").find({type:"inj"}).forEach(function(obj) {
                solution = obj.solution
              });
-         db.collection('splitLogCollection').find({'hack_Type':{$regex : ".*inj.*"}},{"_id":false,"hack_Type":false}).toArray(function(err, data) {
+         db.collection('splitLogCollection').find({id: LoginID, inputdate:GETTODAY,'hackType':{$regex : ".*inj.*"}},{"_id":false,"hackType":false}).toArray(function(err, data) {
             res.render('hackanalysispage', {
                data : data, solutionText : solution, injcnt:injcnt, basmcnt:basmcnt, xsscnt:xsscnt,  sdecnt:sdecnt, id: LoginID
                });
@@ -321,7 +412,7 @@ app.get('/hackanalysis_basm', function(req, res) {
          db.collection("hackingCollection").find({type:"basm"}).forEach(function(obj) {
                solution = obj.solution
              });
-         db.collection('splitLogCollection').find({'hack_Type':{$regex : ".*basm.*"}},{"_id":false,"hack_Type":false}).toArray(function(err, data) {
+         db.collection('splitLogCollection').find({id: LoginID, inputdate:GETTODAY,'hackType':{$regex : ".*basm.*"}},{"_id":false,"hackType":false}).toArray(function(err, data) {
             res.render('hackanalysispage', {
                data : data, solutionText : solution, injcnt:injcnt, basmcnt:basmcnt, xsscnt:xsscnt,  sdecnt:sdecnt, id: LoginID
                });
@@ -336,7 +427,7 @@ app.get('/hackanalysis_xss', function(req, res) {
          db.collection("hackingCollection").find({type:"xss"}).forEach(function(obj) {
                solution = obj.solution
              });
-         db.collection('splitLogCollection').find({'hack_Type':{$regex : ".*xss.*"}},{"_id":false,"hack_Type":false}).toArray(function(err, data) {
+         db.collection('splitLogCollection').find({'hackType':{$regex : ".*xss.*"}},{"_id":false,"hackType":false}).toArray(function(err, data) {
             res.render('hackanalysispage', {
                data : data, solutionText : solution, injcnt:injcnt, basmcnt:basmcnt, xsscnt:xsscnt,  sdecnt:sdecnt, id: LoginID
                });
@@ -351,7 +442,7 @@ app.get('/hackanalysis_sde', function(req, res) {
          db.collection("hackingCollection").find({type:"sde"}).forEach(function(obj) {
                solution = obj.solution
              });
-         db.collection('splitLogCollection').find({'hack_Type':{$regex : ".*sde.*"}},{"_id":false,"hack_Type":false}).toArray(function(err, data) {
+         db.collection('splitLogCollection').find({id: LoginID, inputdate:GETTODAY,'hackType':{$regex : ".*sde.*"}},{"_id":false,"hackType":false}).toArray(function(err, data) {
             res.render('hackanalysispage', {
                data : data, solutionText : solution, injcnt:injcnt, basmcnt:basmcnt, xsscnt:xsscnt,  sdecnt:sdecnt, id: LoginID
                });
