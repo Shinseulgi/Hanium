@@ -35,7 +35,6 @@ app.get('/', function(req, res) {
             });
     });
 });
- 
 function authenticateUser(userID, password, callback){
     MongoClient.connect(url, function(err, db) {
         if(err) throw err;
@@ -53,7 +52,7 @@ app.post('/', function(req, res) {
     var userID = req.body.id;
     var userPW = req.body.pw;
     LoginID=userID;
-    //console.log(userID);
+    console.log(LoginID);
     
     authenticateUser(userID, userPW, function(err, user) {
         if(user){
@@ -71,6 +70,7 @@ app.post('/', function(req, res) {
 });
 var LoginID;
 var GETTODAY;
+var INIT;
 //Upload Page/////////////////////////////////////////////////////////////////////////////	
 app.get('/upload', function(req, res) {
     res.render('uploadpage', {
@@ -116,7 +116,7 @@ app.post('/file-upload', function(req, res) {
 			        var coll = db.collection('originLogCollection');
 			        var batch = coll.initializeOrderedBulkOp();
 			        for(i in array){
-			          var newKey = {id: LoginID, inputdate:GETTODAY, log:array[i]};
+			          var newKey = {'id':LoginID,'inputdate':GETTODAY,log:array[i]};
 			          console.log(newKey);
 			          batch.insert(newKey);
 			        }
@@ -147,9 +147,8 @@ app.get('/uploadsplitlog', function(req, res) {
         //input split log 
         var coll2split=db.collection('splitLogCollection');
         var batch2split = coll2split.initializeOrderedBulkOp();
-        db.collection('originLogCollection').find({"id": LoginID, "inputdate":GETTODAY}).toArray(function(err, data) {
-        	for(var i=0;i<(data.length);i++){
-        	   if(data[i].log){
+        db.collection('originLogCollection').find({'id':LoginID,'inputdate':GETTODAY}).toArray(function(err, data) {
+        	for(var i=0;i<(data.length)-1;i++){
         		   var log2split=data[i].log;
             	   var strToken = log2split.split(" ");
                    var strToken2= log2split.split(strToken[6]);
@@ -196,102 +195,105 @@ app.get('/uploadsplitlog', function(req, res) {
                    if(hackCnt==0)                                 //no hacking
                         hackStr="none";
                    //hacking code add, param !!!!!!!!!!!!!!!!!!!!!!!!
-            	   var newKey2split = {id: LoginID, inputdate:GETTODAY, date: strToken[0], time: strToken[1], srcIp:  strToken[2], dstIp:  strToken[4], proto:  strToken[5], csmethod: strToken[6], page: strToken3[0], param: "-", status: strToken[strToken.length-3], hackType: hackStr};
+                   if(strToken[1]+"".length<6)
+                	   var timeitem="0"+strToken[1];
+                   else
+                	   var timeitem=strToken[1];
+            	   var newKey2split = {'id':LoginID,'inputdate':GETTODAY,date: strToken[0], time: timeitem, srcIp:  strToken[2], dstIp:  strToken[4], proto:  strToken[5], csmethod: strToken[6], page: strToken3[0], param: "-", status: strToken[strToken.length-3], hackType: hackStr};
             	   console.log(newKey2split);
             	   batch2split.insert(newKey2split);
             	}
                batch2split.execute(function(err, result){ db.close();});
-        	}    
+        	   
         });
     });
 	res.redirect('/uploadranklog');
 });
 
 app.get('/uploadranklog', function(req, res) {
-	MongoClient.connect(url,function(err, db) {
-        if(err) throw err;
-        var coll2pagerank = db.collection('pageRankCollection');
-        db.collection('splitLogCollection').aggregate(
-        		{ $match : {id : LoginID,inputdate:GETTODAY} },
-        	 {$group: {_id: '$page',id: {$first:'$id'}, inputdate: {$first:'$inputdate'}, count: { $sum: 1 } }}
-        , function(err, result) {
-            if(err) {
-                db.close();
-                throw err;
-            }
-            console.log(result);
-            coll2pagerank.insert(result);
-        });
-        //batch2rank.execute(function(err, result) { db.close();});
-    });
-	MongoClient.connect(url,function(err, db) {
-        if(err) throw err;
-        var coll2pagerank = db.collection('protoRankCollection');
-        db.collection('splitLogCollection').aggregate(
-        		{ $match : {id : LoginID,inpudate:GETTODAY} },
-        	 {$group: {_id: '$proto',id: {$first:'$id'}, inputdate: {$first:'$inputdate'}, count: { $sum: 1 } }}
-        , function(err, result) {
-            if(err) {
-                db.close();
-                throw err;
-            }
-            console.log(result);
-            coll2pagerank.insert(result);
-        });
-        //batch2rank.execute(function(err, result) { db.close();});
-    });
-	MongoClient.connect(url,function(err, db) {
-        if(err) throw err;
-        var coll2pagerank = db.collection('srcRankCollection');
-        db.collection('splitLogCollection').aggregate(
-        		{ $match : {id : LoginID,inputdate:GETTODAY} },
-        	 {$group: {_id: '$srcIp',id: {$first:'$id'}, inputdate: {$first:'$inputdate'}, count: { $sum: 1 } }}
-        , function(err, result) {
-            if(err) {
-                db.close();
-                throw err;
-            }
-            console.log(result);
-            coll2pagerank.insert(result);
-        });
-        //batch2rank.execute(function(err, result) { db.close();});
-    });
-	MongoClient.connect(url, function(err, db) {
-        if(err) throw err;
-        var coll2pagerank = db.collection('statusRankCollection');
-        db.collection('splitLogCollection').aggregate(
-        		{ $match : {id : LoginID,inputdate:GETTODAY} },
-        	 {$group: {_id: '$status',id: {$first:'$id'}, inputdate: {$first:'$inputdate'}, count: { $sum: 1 } }}
-        , function(err, result) {
-            if(err) {
-                db.close();
-                throw err;
-            }
-            console.log(result);
-            coll2pagerank.insert(result);
-        });
-        //batch2rank.execute(function(err, result) { db.close();});
-    });
-	MongoClient.connect(url, function(err, db) {
-        if(err) throw err;
-        var coll2pagerank = db.collection('timeRankCollection');
-        db.collection('splitLogCollection').aggregate(
-        		{ $match : {id : LoginID,inputdate:GETTODAY} },
-        	 {$group: {_id: '$date',id: {$first:'$id'}, inputdate: {$first:'$inputdate'}, count: { $sum: 1 } }}
-        , function(err, result) {
-            if(err) {
-                db.close();
-                throw err;
-            }
-            console.log(result);
-            coll2pagerank.insert(result);
-        });
-        //batch2rank.execute(function(err, result) { db.close();});
-    });
+	INIT=0;
 	res.redirect('/analysis');	
 });
 //Analysis Page/////////////////////////////////////////////////////////////////////////////
 app.get('/analysis', function(req, res) {
+	if( INIT==0){
+		MongoClient.connect(url,function(err, db) {
+	        if(err) throw err;
+	        var coll2pagerank = db.collection('pageRankCollection');
+	        db.collection('splitLogCollection').aggregate(
+	        	 {$group: {_id: {page:'$page',id: '$id', inputdate: '$inputdate'}, count: { $sum: 1 } }}
+	        , function(err, result) {
+	            if(err) {
+	                db.close();
+	                throw err;
+	            }
+	            console.log(result);
+	            coll2pagerank.insert(result);
+	        });
+	        //batch2rank.execute(function(err, result) { db.close();});
+	    });
+		MongoClient.connect(url,function(err, db) {
+	        if(err) throw err;
+	        var coll2pagerank = db.collection('protoRankCollection');
+	        db.collection('splitLogCollection').aggregate(
+	        	 {$group: {_id: {proto:'$proto', id: '$id', inputdate: '$inputdate'},count: { $sum: 1 } }}
+	        , function(err, result) {
+	            if(err) {
+	                db.close();
+	                throw err;
+	            }
+	            console.log(result);
+	            coll2pagerank.insert(result);
+	        });
+	        //batch2rank.execute(function(err, result) { db.close();});
+	    });
+		MongoClient.connect(url,function(err, db) {
+	        if(err) throw err;
+	        var coll2pagerank = db.collection('srcRankCollection');
+	        db.collection('splitLogCollection').aggregate(
+	        	 {$group: {_id: {ip:'$srcIp',id: '$id', inputdate:'$inputdate'},count: { $sum: 1 } }}
+	        , function(err, result) {
+	            if(err) {
+	                db.close();
+	                throw err;
+	            }
+	            console.log(result);
+	            coll2pagerank.insert(result);
+	        });
+	        //batch2rank.execute(function(err, result) { db.close();});
+	    });
+		MongoClient.connect(url, function(err, db) {
+	        if(err) throw err;
+	        var coll2pagerank = db.collection('statusRankCollection');
+	        db.collection('splitLogCollection').aggregate(
+	        	 {$group: {_id: {status:'$status',id: '$id', inputdate: '$inputdate'}, count: { $sum: 1 } }}
+	        , function(err, result) {
+	            if(err) {
+	                db.close();
+	                throw err;
+	            }
+	            console.log(result);
+	            coll2pagerank.insert(result);
+	        });
+	        //batch2rank.execute(function(err, result) { db.close();});
+	    });
+		MongoClient.connect(url, function(err, db) {
+	        if(err) throw err;
+	        var coll2pagerank = db.collection('timeRankCollection');
+	        db.collection("splitLogCollection").aggregate([
+	            { $group : { _id: {date: "$date" , hour: {$arrayElemAt: [{ $split: ["$time",":"] },0]}}, 
+	               "count" : {$sum : 1}}
+	            }
+	           ,{$sort : {_id:1}}
+	         ]).toArray(function(err, result) {
+	             assert.equal(err, null);
+	             console.log(result);
+	             coll2pagerank.insert(result);
+	         });
+	        //batch2rank.execute(function(err, result) { db.close();});
+	    });
+		INIT=1;
+		}
     res.render('analysispage', {
         title: 'Analysis',
         	id: LoginID
@@ -307,28 +309,39 @@ app.get('/pre_analysis', function(req, res) {
 
 var eventArr=[];
 app.get('/analysis_eventnumber', function(req, res) {
-   MongoClient.connect(url, function(err,db){
-         if(err) throw err;
-         db.collection('timeRankCollection').find({"id": LoginID, "inputdate":GETTODAY}).toArray(function(err, data) {
-            for(var i=0;i<(data.length/24);i++){
-                  eventArr[i]=new Array();
-                  eventArr[i][0]=data[(i*24)]._id.date;
-                  for(var j=0;j<24;j++){
-                     eventArr[i][j+1]=data[(i*24)+j].count;
-                  }
-               }
-            
-          res.render('as_eventnumberpage', {
-               data : data, eventArr : eventArr, id: LoginID
-               })
-            });
-         });
+	    MongoClient.connect(url, function(err,db){
+	        if(err) throw err;
+	        db.collection('timeRankCollection').find().toArray(function(err, data) {
+	           eventArr[0]=Array.apply(null, new Array(25)).map(Number.prototype.valueOf,0);
+	           eventArr[1]=Array.apply(null, new Array(25)).map(Number.prototype.valueOf,0);
+	           eventArr[2]=Array.apply(null, new Array(25)).map(Number.prototype.valueOf,0);
+	           eventArr[0][0]="2015-10-26";
+	           eventArr[1][0]="2015-10-27";
+	           eventArr[2][0]="2015-10-28";
+	           for(var i=0;i<(data.length);i++){
+	        	   if(data[i]._id.date.indexOf('26')!=-1){
+	        		   eventArr[0][parseInt(data[i]._id.hour)+1]=data[i].count;
+	        	   }
+	        	   else if(data[i]._id.date.indexOf('27')!=-1){
+	        		   eventArr[1][parseInt(data[i]._id.hour)+1]=data[i].count;
+	        	   }
+	        	   else{
+	        		   eventArr[2][parseInt(data[i]._id.hour)+1]=data[i].count;
+	        	   }
+	           }     
+	           console.log(eventArr);
+	           
+         res.render('as_eventnumberpage', {
+               data: data, eventArr : eventArr, id: LoginID 
+              })
+           });
+	    }); 
 });
 
 app.get('/analysis_ip', function(req, res) {
 	MongoClient.connect(url, function(err,db){
 		if(err) throw err;
-		    db.collection('srcRankCollection').find({"id": LoginID, "inputdate":GETTODAY}).toArray(function(err, data) {
+		    db.collection('srcRankCollection').find({'_id.id':LoginID,'_id.inputdate':GETTODAY}).sort({"count":-1}).toArray(function(err, data) {
 	            res.render('as_ippage', {
 	               data: data,
 	               id: LoginID
@@ -336,11 +349,10 @@ app.get('/analysis_ip', function(req, res) {
 	        });
 	    });
 	});
-
 app.get('/analysis_page', function(req, res) {
 	   MongoClient.connect(url, function(err,db){
 	         if(err) throw err;
-	         db.collection('pageRankCollection').find({"id": LoginID, "inputdate":GETTODAY}).toArray(function(err, data) {
+	         db.collection('pageRankCollection').find({'_id.id':LoginID,'_id.inputdate':GETTODAY}).sort({"count":-1}).toArray(function(err, data) {
 	            res.render('as_pagepage', {
 	               data: data,
 	               id: LoginID
@@ -352,7 +364,7 @@ app.get('/analysis_page', function(req, res) {
 app.get('/analysis_proto', function(req, res) {
 	   MongoClient.connect(url, function(err,db){
 	         if(err) throw err;
-	         db.collection('protoRankCollection').find({"id": LoginID, "inputdate":GETTODAY}).toArray(function(err, data) {
+	         db.collection('protoRankCollection').find({'_id.id':LoginID,'_id.inputdate':GETTODAY}).sort({"_id.count":-1}).toArray(function(err, data) {
 	            res.render('as_protopage', {
 	               data: data,
 	               id: LoginID
@@ -364,7 +376,7 @@ app.get('/analysis_proto', function(req, res) {
 app.get('/analysis_status', function(req, res) {
 	   MongoClient.connect(url, function(err,db){
 	         if(err) throw err;
-	         db.collection('statusRankCollection').find({id: LoginID, inputdate:GETTODAY}).toArray(function(err, data) {
+	         db.collection('statusRankCollection').find({'_id.id':LoginID,'_id.inputdate':GETTODAY}).sort({"count":-1}).toArray(function(err, data) {
 	            res.render('as_statuspage', {
 	               data: data,
 	               id: LoginID
@@ -377,10 +389,10 @@ var injcnt, basmcnt, xsscnt, sdecnt;
 app.get('/hackanalysis', function(req, res) {
    MongoClient.connect(url, function(err,db){
          if(err) throw err;
-         var injLogs = db.collection("splitLogCollection").find({"id": LoginID, "inputdate":GETTODAY,'hackType':{$regex : ".*inj.*"}});
-         var basmLogs = db.collection("splitLogCollection").find({"id": LoginID, "inputdate":GETTODAY,'hackType':{$regex : ".*basm.*"}});
-         var xssLogs = db.collection("splitLogCollection").find({"id": LoginID, "inputdate":GETTODAY,'hackType':{$regex : ".*xss.*"}});
-         var sdeLogs = db.collection("splitLogCollection").find({"id": LoginID, "inputdate":GETTODAY,'hackType':{$regex : ".*sde.*"}});
+         var injLogs = db.collection("splitLogCollection").find({'id':LoginID,'inputdate':GETTODAY,'hackType':{$regex : ".*inj.*"}});
+         var basmLogs = db.collection("splitLogCollection").find({'id':LoginID,'inputdate':GETTODAY,'hackType':{$regex : ".*basm.*"}});
+         var xssLogs = db.collection("splitLogCollection").find({'id':LoginID,'inputdate':GETTODAY,'hackType':{$regex : ".*xss.*"}});
+         var sdeLogs = db.collection("splitLogCollection").find({'id':LoginID,'inputdate':GETTODAY,'hackType':{$regex : ".*sde.*"}});
          injLogs.count(function(error, cnt) {
             injcnt=cnt;
          });
@@ -397,7 +409,7 @@ app.get('/hackanalysis', function(req, res) {
          db.collection("hackingCollection").find({type:"inj"}).forEach(function(obj) {
                solution = obj.solution
              });
-         db.collection('splitLogCollection').find({id: LoginID, inputdate:GETTODAY,'hackType':{$regex : ".*inj.*"}},{"_id":false,"hackType":false}).toArray(function(err, data) {
+         db.collection('splitLogCollection').find({'id':LoginID,'inputdate':GETTODAY,'hackType':{$regex : ".*inj.*"}},{"_id":false,"hackType":false}).toArray(function(err, data) {
             res.render('hackanalysispage', {
                data : data, solutionText : solution, injcnt:injcnt, basmcnt:basmcnt, xsscnt:xsscnt,  sdecnt:sdecnt, id: LoginID
                });
@@ -412,7 +424,7 @@ app.get('/hackanalysis_basm', function(req, res) {
          db.collection("hackingCollection").find({type:"basm"}).forEach(function(obj) {
                solution = obj.solution
              });
-         db.collection('splitLogCollection').find({id: LoginID, inputdate:GETTODAY,'hackType':{$regex : ".*basm.*"}},{"_id":false,"hackType":false}).toArray(function(err, data) {
+         db.collection('splitLogCollection').find({'id':LoginID,'inputdate':GETTODAY,'hackType':{$regex : ".*basm.*"}},{"_id":false,"hackType":false}).toArray(function(err, data) {
             res.render('hackanalysispage', {
                data : data, solutionText : solution, injcnt:injcnt, basmcnt:basmcnt, xsscnt:xsscnt,  sdecnt:sdecnt, id: LoginID
                });
@@ -427,7 +439,7 @@ app.get('/hackanalysis_xss', function(req, res) {
          db.collection("hackingCollection").find({type:"xss"}).forEach(function(obj) {
                solution = obj.solution
              });
-         db.collection('splitLogCollection').find({'hackType':{$regex : ".*xss.*"}},{"_id":false,"hackType":false}).toArray(function(err, data) {
+         db.collection('splitLogCollection').find({'id':LoginID,'inputdate':GETTODAY,'hackType':{$regex : ".*xss.*"}},{"_id":false,"hackType":false}).toArray(function(err, data) {
             res.render('hackanalysispage', {
                data : data, solutionText : solution, injcnt:injcnt, basmcnt:basmcnt, xsscnt:xsscnt,  sdecnt:sdecnt, id: LoginID
                });
@@ -442,7 +454,7 @@ app.get('/hackanalysis_sde', function(req, res) {
          db.collection("hackingCollection").find({type:"sde"}).forEach(function(obj) {
                solution = obj.solution
              });
-         db.collection('splitLogCollection').find({id: LoginID, inputdate:GETTODAY,'hackType':{$regex : ".*sde.*"}},{"_id":false,"hackType":false}).toArray(function(err, data) {
+         db.collection('splitLogCollection').find({'id':LoginID,'inputdate':GETTODAY,'hackType':{$regex : ".*sde.*"}},{"_id":false,"hackType":false}).toArray(function(err, data) {
             res.render('hackanalysispage', {
                data : data, solutionText : solution, injcnt:injcnt, basmcnt:basmcnt, xsscnt:xsscnt,  sdecnt:sdecnt, id: LoginID
                });
@@ -522,9 +534,70 @@ app.get('/find_pw', function(req, res) {
 });
 
 //Edit Page/////////////////////////////////////////////////////////////////////////////
+
+function userInfo(userID, callback) {
+   MongoClient.connect(url, function(err, db) {
+        if(err) throw err;
+        var coll = db.collection('UserCollection');
+        
+        coll.findOne({id: userID}, function(err, user){
+            callback(err, user);
+        });
+    });
+}
+
 app.get('/editinfo', function(req, res) {
-    res.render('editinfopage', {
-        title: 'Edit My Info'
+   userInfo(LoginID, function(err, user) {
+      if(user){
+         res.render('editinfopage', {
+            id: LoginID,
+            name: user.name,
+            pw: user.pw,
+            email: user.email,
+            birth: user.birth,
+            user: user
+         });
+         //console.log(user);
+      }else {
+         console.log("failed");
+      }
+   })
+});
+
+app.post('/editinfo', function(req, res) {
+    // Set our internal DB variable
+    var db = req.db;
+
+    // Get our form values. These rely on the "name" attributes
+    var userName = req.body.name;
+    var userID = req.body.id;
+    var userPW = req.body.pw;
+    var newPW1 = req.body.new_pw1;
+    var userEmail = req.body.email;
+    var userBirth = req.body.birth;
+    
+    MongoClient.connect(url, function(err,db){
+       if(err) throw err;
+       var collection = db.collection('UserCollection');
+
+       userInfo(LoginID, function(err, user) {
+           collection.update({
+              "id": LoginID, "pw": userPW},{$set: {
+                 "birth": userBirth,
+                 "email": userEmail,
+                 "pw": newPW1
+              }
+              }, function(err, doc) {
+                 if (err) {
+                        res.send("There was a problem adding the information to the database.");
+                    }
+                    else {
+                        res.render('uploadpage', {
+                           id: LoginID
+                        });
+                    }
+              });
+        });
     });
 });
 
