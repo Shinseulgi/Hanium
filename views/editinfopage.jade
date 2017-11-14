@@ -17,14 +17,11 @@ html
       text-align:center;
       }
       .div2content{
-      text-align:left;
-      margin: 50px 0px 0px 250px;
+      text-align:center;
       }
       .button {
       text-align:center;
       margin: 20px 0px 0px 0px;
-      }
-      #button1, #button2 {
       border:3px solid #D8D8D8 ;/*---테두리정의--*/
       width:130height:30px; /*--버튼크기--*/
       }
@@ -32,34 +29,64 @@ html
     .div1title
       span 개인정보 수정
     .div2content
-      form(method='get')
-        | 이름
-        input.input1(type='text', name='name', placeholder='이정민', readonly='')
+      form(method='post', action='/editinfo')
+        | 이름 &nbsp;&nbsp;
+        input.input1(type='text', name='name', placeholder='#{name}', readonly='')
         br
         |                 아이디
-        input.input1(type='text', name='id', placeholder='wjdals620', readonly='')
+        input.input1(type='text', name='id', placeholder='#{id}', readonly='')
         br
         br
-        |                 비밀번호
         br
         |                 기존 비밀번호
-        input.input1(name='pw', type='password')
+        input.input1(id='pw',name='pw', type='password')
         br
-        |                 새 비밀번호
-        input.input1(name='pw', type='password')
+        |                 새 비밀번호&nbsp;&nbsp;&nbsp;
+        input.input1(id='new_pw1',name='new_pw1', type='password')
         br
-        |                 비밀번호 확인
-        input.input1(name='pw', type='password')
+        |비밀번호 확인&nbsp;&nbsp;
+        input.input1(id='new_pw2',name='new_pw2', type='password') 
+        | &nbsp;&nbsp;
+        br
+        button(type="button", onclick="pwCheck()") 확인
+        br
         br
         br
         |                 생년월일 
-        input.input1(name='pw', type='text', placeholder='1994/06/20')
-        button 달력
+        input.input1(id='birth', name='birth', type='text', placeholder='#{birth}')
         br
-        |  이메일 
-        input.input1(type='text', name='mail', placeholder='jotoomn@naver.com')
+        |  이메일 &nbsp;&nbsp;&nbsp;
+        input.input1(type='text', name='email', id='mail', placeholder='#{email}')
         br
-       | ??? #{id}
-    .button
-      button#button1 수정
-      button#button2 취소
+        button(type='submit') 수정
+        | &nbsp;&nbsp;
+        
+        button(type='button',onclick="cancel()") 취소
+        #data4pwcheck(style='solid;display:none;') #{JSON.stringify(user)}
+script.
+     function pwCheck(){
+       
+       var data4idcheck=document.getElementById("data4pwcheck").innerHTML;
+       var pw=document.getElementById("pw").value;
+       var new_pw1=document.getElementById("new_pw1").value;
+       var new_pw2=document.getElementById("new_pw2").value;
+       var iValue = data4idcheck.indexOf('"pw":"'+pw+'"');
+       //alert(iValue);
+       if(iValue != -1){
+           //alert(new_pw1 + " " + new_pw2);
+           if(new_pw1 != new_pw2){
+           alert("패스워드를 다시 확인하세요!!!");
+           }
+           else{
+           alert("패스워드 일치!!!");
+           }
+       }
+           
+       else
+           alert("패스워드를 다시 확인하세요!!!"); 
+      }
+      
+      function cancel(){
+        window.location.href = '/';
+        return false;
+      }

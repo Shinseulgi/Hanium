@@ -131,17 +131,16 @@ html
       onReady('#chart', function() {
       var data=document.getElementById("aa");
       var data4proto=data.content;
-      var rmstr=data4proto.replace(/\[|\]|\{|\}|\"/gi,"");
-      var tokenArray=rmstr.split(",");
-      for(var i=0;i<(tokenArray.length/3);i++){
-           var arr_sub = new Array();
-           for(var j=0;j<2;j++){
-             var subStr = tokenArray[(i*3)+(j+1)];
-             var subArr = subStr.split(":");
-             if(j==0) arr_sub.push(subArr[1].toString());
-             else arr_sub.push(parseInt(subArr[1]));
-           }
-           protoArray.push(arr_sub);
+      var data4split=data4proto.split('{"_id"');
+      for(var i=1;i<data4split.length;i++){
+      var datasplit1=data4split[i].split('"proto":"');
+      var datasplit2=datasplit1[1].split('"');
+      var datasplit3=datasplit1[1].split('"count":');
+      var datasplit4=datasplit3[1].split('}');
+       var arr_sub = new Array();
+       arr_sub.push(datasplit2[0]);
+       arr_sub.push(datasplit4[0]);
+       protoArray.push(arr_sub);
       }
       var chart = c3.generate({
       data: {

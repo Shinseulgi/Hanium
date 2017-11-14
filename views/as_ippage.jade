@@ -130,14 +130,14 @@ html
       var chart = c3.generate({
       data: {
       columns: [
-      ["#{data[0].ip}",#{data[0].count}],
-      ["#{data[1].ip}",#{data[1].count}],
-      ["#{data[2].ip}",#{data[2].count}],
-      ["#{data[3].ip}",#{data[3].count}],
-      ["#{data[4].ip}",#{data[4].count}],
-      ["#{data[5].ip}",#{data[5].count}],
-      ["#{data[6].ip}",#{data[6].count}],
-      ["#{data[7].ip}",#{data[7].count}]
+      ["#{data[0]._id.ip}",#{data[0].count}],
+      ["#{data[1]._id.ip}",#{data[1].count}],
+      ["#{data[2]._id.ip}",#{data[2].count}],
+      ["#{data[3]._id.ip}",#{data[3].count}],
+      ["#{data[4]._id.ip}",#{data[4].count}],
+      ["#{data[5]._id.ip}",#{data[5].count}],
+      ["#{data[6]._id.ip}",#{data[6].count}],
+      ["#{data[7]._id.ip}",#{data[7].count}]
       ],
       type : 'pie'
       }
@@ -204,14 +204,14 @@ script.
     function save_csv() {
       exportToCsv('ip.csv', [
       ['ip','count'],
-      ['#{data[0].ip}',#{data[0].count}],
-      ['#{data[1].ip}',#{data[1].count}],
-      ['#{data[2].ip}',#{data[2].count}],
-      ['#{data[3].ip}',#{data[3].count}],
-      ['#{data[4].ip}',#{data[4].count}],
-      ['#{data[5].ip}',#{data[5].count}],
-      ['#{data[6].ip}',#{data[6].count}],
-      ['#{data[7].ip}',#{data[7].count}]
+      ["#{data[0]._id.ip}",#{data[0].count}],
+      ["#{data[1]._id.ip}",#{data[1].count}],
+      ["#{data[2]._id.ip}",#{data[2].count}],
+      ["#{data[3]._id.ip}",#{data[3].count}],
+      ["#{data[4]._id.ip}",#{data[4].count}],
+      ["#{data[5]._id.ip}",#{data[5].count}],
+      ["#{data[6]._id.ip}",#{data[6].count}],
+      ["#{data[7]._id.ip}",#{data[7].count}]
       ]);
       return false;
     }
@@ -258,6 +258,4 @@ script.
                 document.body.removeChild(link);
                 }
          }
-    }
-    
-      
+    }     

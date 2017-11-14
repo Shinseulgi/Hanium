@@ -130,14 +130,11 @@ html
       var chart = c3.generate({
       data: {
       columns: [
-      ["#{data[0].status}",#{data[0].count}],
-      ["#{data[1].status}",#{data[1].count}],
-      ["#{data[2].status}",#{data[2].count}],
-      ["#{data[3].status}",#{data[3].count}],
-      ["#{data[4].status}",#{data[4].count}],
-      ["#{data[5].status}",#{data[5].count}],
-      ["#{data[6].status}",#{data[6].count}],
-      ["#{data[7].status}",#{data[7].count}]
+      ["#{data[0]._id.status}",#{data[0].count}],
+      ["#{data[1]._id.status}",#{data[1].count}],
+      ["#{data[2]._id.status}",#{data[2].count}],
+      ["#{data[3]._id.status}",#{data[3].count}],
+      ["#{data[4]._id.status}",#{data[4].count}],
       ],
       type : 'pie'
       }
@@ -203,14 +200,11 @@ script.
     function save_csv() {
       exportToCsv('status.csv', [
       ['status','count'],
-      ['#{data[0].status}',#{data[0].count}],
-      ['#{data[1].status}',#{data[1].count}],
-      ['#{data[2].status}',#{data[2].count}],
-      ['#{data[3].status}',#{data[3].count}],
-      ['#{data[4].status}',#{data[4].count}],
-      ['#{data[5].status}',#{data[5].count}],
-      ['#{data[6].status}',#{data[6].count}],
-      ['#{data[7].status}',#{data[7].count}]
+      ["#{data[0]._id.status}",#{data[0].count}],
+      ["#{data[1]._id.status}",#{data[1].count}],
+      ["#{data[2]._id.status}",#{data[2].count}],
+      ["#{data[3]._id.status}",#{data[3].count}],
+      ["#{data[4]._id.status}",#{data[4].count}],
       ]);
       return false;
     }
@@ -253,5 +247,3 @@ script.
                 document.body.removeChild(link);
                 }
          }
-    }
-      

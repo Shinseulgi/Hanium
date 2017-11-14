@@ -130,14 +130,14 @@ html
       var chart = c3.generate({
       data: {
       columns: [
-      ["#{data[0].page}",#{data[0].count}],
-      ["#{data[1].page}",#{data[1].count}],
-      ["#{data[2].page}",#{data[2].count}],
-      ["#{data[3].page}",#{data[3].count}],
-      ["#{data[4].page}",#{data[4].count}],
-      ["#{data[5].page}",#{data[5].count}],
-      ["#{data[6].page}",#{data[6].count}],
-      ["#{data[7].page}",#{data[7].count}]
+      ["#{data[0]._id.page}",#{data[0].count}],
+      ["#{data[1]._id.page}",#{data[1].count}],
+      ["#{data[2]._id.page}",#{data[2].count}],
+      ["#{data[3]._id.page}",#{data[3].count}],
+      ["#{data[4]._id.page}",#{data[4].count}],
+      ["#{data[5]._id.page}",#{data[5].count}],
+      ["#{data[6]._id.page}",#{data[6].count}],
+      ["#{data[7]._id.page}",#{data[7].count}]
       ],
       type : 'donut'
       }
@@ -203,14 +203,14 @@ script.
     function save_csv() {
       exportToCsv('page.csv', [
       ['page','count'],
-      ["#{data[0].page}",#{data[0].count}],
-      ["#{data[1].page}",#{data[1].count}],
-      ["#{data[2].page}",#{data[2].count}],
-      ["#{data[3].page}",#{data[3].count}],
-      ["#{data[4].page}",#{data[4].count}],
-      ["#{data[5].page}",#{data[5].count}],
-      ["#{data[6].page}",#{data[6].count}],
-      ["#{data[7].page}",#{data[7].count}]
+      ["#{data[0]._id.page}",#{data[0].count}],
+      ["#{data[1]._id.page}",#{data[1].count}],
+      ["#{data[2]._id.page}",#{data[2].count}],
+      ["#{data[3]._id.page}",#{data[3].count}],
+      ["#{data[4]._id.page}",#{data[4].count}],
+      ["#{data[5]._id.page}",#{data[5].count}],
+      ["#{data[6]._id.page}",#{data[6].count}],
+      ["#{data[7]._id.page}",#{data[7].count}]
       ]);
       return false;
     }
@@ -254,4 +254,3 @@ script.
                 }
          }
     }
-      
